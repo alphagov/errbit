@@ -46,9 +46,7 @@ GEM
     bson (1.6.2)
     bson_ext (1.6.2)
       bson (~> 1.6.2)
-    builder (3.0.4)
-    campy (0.1.3)
-      multi_json (~> 1.0)
+    builder (3.0.0)
     capistrano (2.13.4)
       highline
       net-scp (>= 1.0.0)
