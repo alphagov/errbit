@@ -7,7 +7,7 @@ namespace :errbit do
       begin
         App.find_by_api_key!(app[:api_key])
       rescue
-        App.create(app)
+        App.create(app.merge(:watchers => [{:email =>"govuk-exceptions@digital.cabinet-office.gov.uk"}]))
       end
     end
   end
