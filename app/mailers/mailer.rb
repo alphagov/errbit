@@ -10,7 +10,7 @@ class Mailer < ActionMailer::Base
     @app      = notice.app
 
     mail :to      => @app.notification_recipients,
-         :subject => "[#{@app.name}][#{@notice.environment_name}] #{@notice.message}"
+         :subject => "#{Errbit::Config.email_prefix} #{@notice.message}"
   end
 
   def deploy_notification(deploy)
