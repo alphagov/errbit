@@ -14,6 +14,12 @@ describe NoticeObserver do
       Errbit::Config.per_app_email_at_notices = false
     end
 
+    it "should not send an email notification after non-threshold counts" do
+         @err.problem.stub(:notices_count).and_return(3)
+         Mailer.should_not_receive(:err_notification)
+         Fabricate(:notice, :err => @err)
+     end
+
     custom_thresholds.each do |threshold|
       it "sends an email notification after #{threshold} notice(s)" do
         @err.problem.stub(:notices_count).and_return(threshold)
@@ -44,7 +50,7 @@ describe NoticeObserver do
   end
 
   describe "should send a notification if a notification service is configured" do
-    let(:app) { Fabricate(:app, :email_at_notices => [1], :notification_service => Fabricate(:campfire_notification_service))}
+    let(:app) { Fabricate(:app, :notify_on_errors => true, :email_at_notices => [1, 101], :notification_service => Fabricate(:campfire_notification_service))}
     let(:err) { Fabricate(:err, :problem => Fabricate(:problem, :app => app, :notices_count => 100)) }
     let(:backtrace) { Fabricate(:backtrace) }
 
@@ -86,7 +92,7 @@ describe NoticeObserver do
   end
 
   describe 'hipcat notifications' do
-    let(:app) { Fabricate(:app, :email_at_notices => [1], :notification_service => Fabricate(:hipchat_notification_service))}
+    let(:app) { Fabricate(:app, :email_at_notices => [1, 101], :notification_service => Fabricate(:hipchat_notification_service))}
     let(:err) { Fabricate(:err, :problem => Fabricate(:problem, :app => app, :notices_count => 100)) }
 
     before do
