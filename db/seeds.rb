@@ -3,7 +3,7 @@ puts "-------------------------------"
 
 # Create an initial Admin User
 admin_username = "errbit"
-admin_email = "errbit@#{Errbit::Config.host}"
+admin_email = "webops@digital.cabinet-office.gov.uk"
 admin_pass  = 'password'
 
 puts "Creating an initial admin user:"
