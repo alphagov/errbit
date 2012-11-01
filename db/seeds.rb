@@ -3,8 +3,8 @@ puts "-------------------------------"
 
 # Create an initial Admin User
 admin_username = "errbit"
-admin_email = "errbit@#{Errbit::Config.host}"
-admin_pass  = 'password'
+admin_email = "webops@digital.cabinet-office.gov.uk"
+admin_pass  = 'nottobeshared'
 
 puts "Creating an initial admin user:"
 puts "-- username: #{admin_username}" if Errbit::Config.user_has_username
