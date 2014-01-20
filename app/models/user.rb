@@ -5,6 +5,8 @@ class User
 
   devise *Errbit::Config.devise_modules
 
+  field :uid
+
   field :email
   field :github_login
   field :github_oauth_token
@@ -61,7 +63,7 @@ class User
   end
 
   def password_required?
-    github_login.present? ? false : super
+    (uid.present? || github_login.present?) ? false : super
   end
 
   def github_account?

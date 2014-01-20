@@ -27,6 +27,22 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     end
   end
 
+  def gds
+    auth = env["omniauth.auth"]
+    permissions = auth.extra.user.permissions
+    if permissions.include?("signin")
+      user = User.where(:uid => auth.uid).first_or_initialize
+      user.admin = permissions.include?("admin")
+      user.email = auth.info.email
+      user.name = auth.info.name
+      user.save!
+      flash[:success] = I18n.t "devise.omniauth_callbacks.success", :kind => "GDS SSO"
+      sign_in_and_redirect user, :event => :authentication
+    else
+      raise "Computer says no"
+    end
+  end
+
   private
 
   def update_user_with_github_attributes(user, login, token)

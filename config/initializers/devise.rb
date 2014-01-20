@@ -226,6 +226,15 @@ Devise.setup do |config|
       :skip_info => true
   end
 
+  config.omniauth :gds,
+    "insert oauth_id",
+    "insert oauth_secret",
+    :client_options => {
+      :site => Plek.current.find('signon'),
+      :authorize_url => "#{Plek.current.find('signon')}/oauth/authorize",
+      :token_url => "#{Plek.current.find('signon')}/oauth/access_token",
+    }
+
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or
   # change the failure app, you can configure them inside the config.warden block.
