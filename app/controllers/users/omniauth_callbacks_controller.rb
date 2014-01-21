@@ -35,6 +35,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       user.admin = permissions.include?("admin")
       user.email = auth.info.email
       user.name = auth.info.name
+      user.remotely_signed_out = false
       user.save!
       flash[:success] = I18n.t "devise.omniauth_callbacks.success", :kind => "GDS SSO"
       sign_in_and_redirect user, :event => :authentication

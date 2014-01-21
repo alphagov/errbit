@@ -6,6 +6,7 @@ class User
   devise *Errbit::Config.devise_modules
 
   field :uid
+  field :remotely_signed_out, :type => Boolean, :default => false
 
   field :email
   field :github_login
@@ -85,6 +86,10 @@ class User
     if authentication_token.blank?
       self.authentication_token = generate_authentication_token
     end
+  end
+
+  def active_for_authentication?
+    super && ! remotely_signed_out
   end
 
   def self.token_authentication_key
