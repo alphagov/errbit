@@ -1,10 +1,10 @@
 Devise.setup do |config|
   config.omniauth :gds,
-    "insert oauth_id",
-    "insert oauth_secret",
+    GDS::SSO::Config.oauth_id,
+    GDS::SSO::Config.oauth_secret,
     :client_options => {
-      :site => Plek.current.find('signon'),
-      :authorize_url => "#{Plek.current.find('signon')}/oauth/authorize",
-      :token_url => "#{Plek.current.find('signon')}/oauth/access_token",
+      :site => GDS::SSO::Config.oauth_root_url,
+      :authorize_url => "/oauth/authorize",
+      :token_url => "/oauth/access_token",
     }
 end
