@@ -123,13 +123,13 @@ describe "GDS Signon callbacks" do
   end
 
   def stub_signon_user(token, perms)
-    WebMock.stub_request(:get, "#{GDS::SSO::Config.oauth_root_url}/user.json").
+    WebMock.stub_request(:get, "#{GDS::SSO::Config.oauth_root_url}/user.json?client_id=#{CGI.escape(GDS::SSO::Config.oauth_id)}").
       with(:headers => {"Authorization" => "Bearer #{token}"}).
       to_return(:status => 200, :body => signon_user_hash(:perms => perms).to_json, :headers => {"Content-Type" => "application/json"})
   end
 
   def stub_signon_invalid_token(token)
-    WebMock.stub_request(:get, "#{GDS::SSO::Config.oauth_root_url}/user.json").
+    WebMock.stub_request(:get, "#{GDS::SSO::Config.oauth_root_url}/user.json?client_id=#{CGI.escape(GDS::SSO::Config.oauth_id)}").
       with(:headers => {"Authorization" => "Bearer #{token}"}).
       to_return(:status => 401)
   end

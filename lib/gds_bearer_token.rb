@@ -2,7 +2,7 @@ class GDSBearerToken
 
   def self.locate(token_string)
     access_token = OAuth2::AccessToken.new(oauth_client, token_string)
-    response_body = access_token.get('/user.json').body
+    response_body = access_token.get("/user.json?client_id=#{CGI.escape(GDS::SSO::Config.oauth_id)}").body
     user_details = omniauth_style_response(response_body)
     User.find_for_gds_oauth(user_details)
   rescue OAuth2::Error
