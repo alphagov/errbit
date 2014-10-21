@@ -13,7 +13,7 @@ class WatchersController < ApplicationController
 
   def destroy
     app.watchers.delete(watcher)
-    flash[:success] = "That's sad. #{watcher.label} is no longer watcher."
+    flash[:success] = "That's sad. #{watcher.label} is no longer a watcher."
     redirect_to root_path
   end
 
