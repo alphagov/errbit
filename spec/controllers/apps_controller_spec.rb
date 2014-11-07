@@ -49,7 +49,17 @@ describe AppsController do
         expect(controller.apps.entries).to eq App.asc('name').entries
       end
     end
+
+    context 'when app names are specified in params' do
+      it 'finds specified apps ordered by name' do
+        sign_in admin
+        watched_app1 && watched_app2 && unwatched_app
+        get :index, apps: [watched_app1.name, unwatched_app.name]
+        expect(controller.apps.entries).to eq [watched_app1, unwatched_app]
+      end
+    end
   end
+
 
   describe "GET /apps/:id" do
     context 'logged in as an admin' do

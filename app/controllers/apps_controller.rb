@@ -8,7 +8,11 @@ class AppsController < ApplicationController
   respond_to :html
 
   expose(:app_scope) {
-    App
+    if !!params[:apps]
+      App.in(name: params[:apps])
+    else
+      App
+    end
   }
 
   expose(:apps) {
