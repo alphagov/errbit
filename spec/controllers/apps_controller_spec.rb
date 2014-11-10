@@ -29,6 +29,10 @@ describe AppsController do
   let(:problem) do
     Fabricate(:problem, :app => app)
   end
+  let(:old_problem) do
+    Fabricate(:problem, :app => watched_app1,
+              :first_notice_at => Date.today - 3)
+  end
   let(:problem_resolved) { Fabricate(:problem_resolved, :app => app) }
 
   describe "GET /apps" do
@@ -50,16 +54,35 @@ describe AppsController do
       end
     end
 
-    context 'when app names are specified in params' do
-      it 'finds specified apps ordered by name' do
-        sign_in admin
-        watched_app1 && watched_app2 && unwatched_app
-        get :index, apps: [watched_app1.name, unwatched_app.name]
-        expect(controller.apps.entries).to eq [watched_app1, unwatched_app]
+    context 'when filtering apps' do
+      context 'by app name' do
+        it 'finds specified apps ordered by name' do
+          sign_in admin
+          watched_app1 && watched_app2 && unwatched_app
+          get :index, apps: [watched_app1.name, unwatched_app.name]
+          expect(controller.apps.entries).to eq [watched_app1, unwatched_app]
+        end
+      end
+
+      context 'by active problem date range' do
+        it 'finds specified apps ordered by name' do
+          sign_in admin
+          watched_app1 && watched_app2 && unwatched_app && problem && old_problem
+          get :index, from: Date.yesterday
+          expect(controller.apps.entries).to eq [unwatched_app]
+        end
+      end
+
+      context 'by active problems' do
+        it 'finds specified apps ordered by name' do
+          sign_in admin
+          watched_app1 && watched_app2 && unwatched_app && problem && old_problem
+          get :index, errors: 'true'
+          expect(controller.apps.entries).to eq [watched_app1, unwatched_app]
+        end
       end
     end
   end
-
 
   describe "GET /apps/:id" do
     context 'logged in as an admin' do
