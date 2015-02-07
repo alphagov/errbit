@@ -1,6 +1,4 @@
-require 'spec_helper'
-
-describe Devise::SessionsController, :pending => "No longer applicable due to GDS SSO" do
+describe Devise::SessionsController, type: 'controller', pending: "No longer applicable due to GDS SSO" do
   render_views
 
   describe "POST /users/sign_in" do
@@ -21,6 +19,10 @@ describe Devise::SessionsController, :pending => "No longer applicable due to GD
       post :create, { :user => { 'email' => user.email, 'password' => user.password } }
       expect(response).to redirect_to(app_path(app))
     end
+
+    it 'displays a friendly error when credentials are invalid' do
+      post :create, { :user => { 'email' => 'whatever', 'password' => 'somethinginvalid' } }
+      expect(request.flash["alert"]).to eq(I18n.t 'devise.failure.user.email_invalid')
+    end
   end
 end
-

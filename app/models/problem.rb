@@ -43,13 +43,12 @@ class Problem
 
   before_create :cache_app_attributes
 
-  scope :resolved, where(:resolved => true)
-  scope :unresolved, where(:resolved => false)
-  scope :ordered, order_by(:last_notice_at.desc)
+  scope :resolved, ->{ where(:resolved => true) }
+  scope :unresolved, ->{ where(:resolved => false) }
+  scope :ordered, ->{ order_by(:last_notice_at.desc) }
   scope :for_apps, lambda {|apps| where(:app_id.in => apps.all.map(&:id))}
 
   validates_presence_of :last_notice_at, :first_notice_at
-
 
   def self.all_else_unresolved(fetch_all)
     if fetch_all
@@ -63,12 +62,15 @@ class Problem
     env.present? ? where(:environment => env) : scoped
   end
 
-  def notices
-    Notice.for_errs(errs).ordered
+  def url
+    Rails.application.routes.url_helpers.app_problem_url(app, self,
+      :host => Errbit::Config.host,
+      :port => Errbit::Config.port
+    )
   end
 
-  def comments_allowed?
-    Errbit::Config.allow_comments_with_issue_tracker || !app.issue_tracker_configured?
+  def notices
+    Notice.for_errs(errs).ordered
   end
 
   def resolve!
@@ -149,7 +151,7 @@ class Problem
   def issue_type
     # Return issue_type if configured, but fall back to detecting app's issue tracker
     attributes['issue_type'] ||=
-    (app.issue_tracker_configured? && app.issue_tracker.label) || nil
+    (app.issue_tracker_configured? && app.issue_tracker.type_tracker) || nil
   end
 
   def self.search(value)
@@ -178,4 +180,3 @@ class Problem
       Digest::MD5.hexdigest(value.to_s)
     end
 end
-

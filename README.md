@@ -1,6 +1,6 @@
 # Errbit [![TravisCI][travis-img-url]][travis-ci-url] [![Code Climate][codeclimate-img-url]][codeclimate-url] [![Coveralls][coveralls-img-url]][coveralls-url] [![Dependency Status][gemnasium-img-url]][gemnasium-url]
 
-[travis-img-url]: https://secure.travis-ci.org/errbit/errbit.png?branch=master
+[travis-img-url]: https://travis-ci.org/errbit/errbit.svg?branch=master
 [travis-ci-url]: http://travis-ci.org/errbit/errbit
 [codeclimate-img-url]: https://codeclimate.com/github/errbit/errbit.png
 [codeclimate-url]: https://codeclimate.com/github/errbit/errbit
@@ -78,25 +78,18 @@ There is a demo available at [http://errbit-demo.herokuapp.com/](http://errbit-d
 Email: demo@errbit-demo.herokuapp.com<br/>
 Password: password
 
-# Requirement
+# Requirements
 
-The list of requirement to install Errbit is :
+The list of requirements to install Errbit are :
 
- * Ruby 1.9.3 or higher
+ * Ruby 2.1.0 or higher
  * MongoDB 2.2.0 or higher
-
-By default it's the Ruby 2.0.0 to use. But you can define your own ruby
-version with RUBY_VERSION variable between :
-
- * 1.9.3
- * 2.0.0
- * 2.1.0
 
 Installation
 ------------
 
 *Note*: This app is intended for people with experience deploying and maintaining
-Rails applications. If you're uncomfortable with any step below then Errbit is not
+Rails applications. If you're uncomfortable with any steps below then Errbit is not
 for you.
 
 **Set up your local box or server(Ubuntu):**
@@ -108,10 +101,10 @@ apt-get update
 apt-get install mongodb-10gen
 ```
 
-  * Install libxml and libcurl
+  * Install libxml, libzip, libssl and libcurl
 
 ```bash
-apt-get install libxml2 libxml2-dev libxslt-dev libcurl4-openssl-dev
+apt-get install libxml2 libxml2-dev libxslt-dev libcurl4-openssl-dev libzip-dev libssl-dev
 ```
 
   * Install Bundler
@@ -128,13 +121,11 @@ gem install bundler
 bundle install
 ```
 
-  * Bootstrap Errbit. This will copy over config.yml and also seed the database.
+  * Bootstrap Errbit. This will seed the database.
 
 ```bash
 rake errbit:bootstrap
 ```
-
-  * Update the config.yml and mongoid.yml files with information about your environment
 
   * Start Server
 
@@ -142,127 +133,48 @@ rake errbit:bootstrap
 script/rails server
 ```
 
-Deploying:
+Configuration
+-------------
+Errbit configuration is done entirely through environment variables. See
+[configuration](docs/configuration.md)
+
+Deploy Hooks
+-------------
+Errbit can track your application deploys. See [deploy hooks](docs/deploy-hooks.md)
+
+Deployment
 ----------
-
-  * Copy `config/deploy.example.rb` to `config/deploy.rb`
-  * Update the `deploy.rb` or `config.yml` file with information about your server
-  * Setup server and deploy
-
-```bash
-cap deploy:setup deploy db:create_mongoid_indexes
-```
-
-(Note: The capistrano deploy script will automatically generate a unique secret token.)
-
-**Deploying to Heroku:**
-
-  * Clone the repository
-
-```bash
-git clone http://github.com/errbit/errbit.git
-```
-  * Update `db/seeds.rb` with admin credentials for your initial login.
-
-  * Run `bundle`
-
-  * Create & configure for Heroku
-
-```bash
-gem install heroku
-heroku create example-errbit
-# If you really want, you can define your stack and your buildpack. the default is good to us :
-# heroku create example-errbit --stack cedar --buildpack https://github.com/heroku/heroku-buildpack-ruby.git
-heroku addons:add mongolab:sandbox
-heroku addons:add sendgrid:starter
-heroku config:add HEROKU=true
-heroku config:add SECRET_TOKEN="$(bundle exec rake secret)"
-heroku config:add ERRBIT_HOST=some-hostname.example.com
-heroku config:add ERRBIT_EMAIL_FROM=example@example.com
-# This next line is required to access env variables during asset compilation.
-# For more info, go to this link: https://devcenter.heroku.com/articles/labs-user-env-compile
-heroku labs:enable user-env-compile
-git push heroku master
-```
-
-  * Seed the DB (_NOTE_: No bootstrap task is used on Heroku!) and
-    create index
-
-```bash
-heroku run rake db:seed
-heroku run rake db:mongoid:create_indexes
-```
-
-  * If you are using a free database on Heroku, you may want to periodically clear resolved errors to free up space.
-
-    * With the heroku-scheduler add-on (replacement for cron):
-
-    ```bash
-    # Install the heroku scheduler add-on
-    heroku addons:add scheduler:standard
-
-    # Go open the dashboard to schedule the job.  You should use
-    # 'rake errbit:db:clear_resolved' as the task command, and schedule it
-    # at whatever frequency you like (once/day should work great).
-    heroku addons:open scheduler
-    ```
-
-    * With the cron add-on:
-
-    ```bash
-    # Install the heroku cron addon, to clear resolved errors daily:
-    heroku addons:add cron:daily
-    ```
-
-    * Or clear resolved errors manually:
-
-    ```bash
-    heroku run rake errbit:db:clear_resolved
-    ```
-
-  * You may want to enable the deployment hook for heroku :
-
-```bash
-heroku addons:add deployhooks:http --url="http://YOUR_ERRBIT_HOST/deploys.txt?api_key=YOUR_API_KEY"
-```
-
-  * You may also want to configure a different secret token for each deploy:
-
-```bash
-heroku config:add SECRET_TOKEN=some-secret-token
-```
-
-  * Enjoy!
-
+See [notes on deployment](docs/deployment.md)
 
 Authentication
 --------------
-
 ### Configuring GitHub authentication:
-
-  * In `config/config.yml`, set `github_authentication` to `true`
-  * Register your instance of Errbit at: https://github.com/settings/applications
+* Set GITHUB_AUTHENTICATION to true
+* Register your instance of Errbit at https://github.com/settings/applications
 
 If you hosted Errbit at errbit.example.com, you would fill in:
 
 <table>
-  <tr><th>URL:</th><td>http://errbit.example.com/</td></tr>
-  <tr><th>Callback URL:</th><td>http://errbit.example.com/users/auth/github</td></tr>
+  <tr><th>URL:</th><td><a href="http://errbit.example.com/">http://errbit.example.com/</a></td></tr>
+  <tr><th>Callback URL:</th><td><a href="http://errbit.example.com/users/auth/github">http://errbit.example.com/users/auth/github</a></td></tr>
 </table>
 
-  * After you have registered your app, set `github_client_id` and `github_secret`
-    in `config/config.yml` with your app's Client ID and Secret key.
+* After you have registered your app, set GITHUB_CLIENT_ID and GITHUB_SECRET
+  with your app's Client ID and Secret key.
 
+When you start your applicatoin, you should see the option to **Sign in with
+GitHub** on the Login page.
 
-After you have followed these instructions, you will be able to **Sign in with GitHub** on the Login page.
+You will also be able to link your GitHub profile to your user account on your
+**Edit profile** page.
 
-You will also be able to link your GitHub profile to your user account on your **Edit profile** page.
+If you have signed in with GitHub, or linked your GitHub profile, and the App
+has a GitHub repo configured, then you will be able to create issues on GitHub.
+You will still be able to create an issue on the App's configured issue
+tracker.
 
-If you have signed in with GitHub, or linked your GitHub profile, and the App has a GitHub repo configured,
-then you will be able to create issues on GitHub.
-You will still be able to create an issue on the App's configured issue tracker.
-
-You can change the requested account permissions by setting `github_access_scope` to:
+You can change the requested account permissions by setting
+`GITHUB_ACCESS_SCOPE` to:
 
 <table>
   <tr><th>['repo'] </th><td>Allow creating issues for public and private repos.</td></tr>
@@ -270,56 +182,16 @@ You can change the requested account permissions by setting `github_access_scope
   <tr><th>[] </th><td>No permission to create issues on any repos.</td></tr>
 </table>
 
-
-### GitHub authentication when served on Heroku
-
-You will need to set up Heroku variables accordingly as described in [Configuring GitHub authentication](#configuring-github-authentication):
-
-* GITHUB_AUTHENTICATION
-
-```bash
-heroku config:add GITHUB_AUTHENTICATION=true
-```
-
-* GITHUB_CLIENT_ID
-
-```bash
-heroku config:add GITHUB_CLIENT_ID=the_client_id_provided_by_GitHub
-```
-
-* GITHUB_SECRET
-
-```bash
-heroku config:add GITHUB_SECRET=the_secret_provided_by_GitHub
-```
-
-* GITHUB_ACCESS_SCOPE - set only one scope `repo` or `public_repo`. If you really need to put more than one, separate them with comma.
-
-```bash
-heroku config:add GITHUB_ACCESS_SCOPE=repo,public_repo
-```
-
-* GITHUB_ORG_ID [*optional*] - If set, any user of the specified GitHub Organization can login.  If it is their first time, an account will automatically be created for them.
-
-```bash
-heroku config:add GITHUB_ORG_ID=1234567
-```
-
-
-__Note__: To avoid restarting your Heroku app 4 times you can set Heroku variables in a single command, i.e:
-
-```bash
-heroku config:add GITHUB_AUTHENTICATION=true \
-GITHUB_CLIENT_ID=the_client_id_provided_by_GitHub \
-GITHUB_SECRET=the_secret_provided_by_GitHub \
-GITHUB_ACCESS_SCOPE=repo,public_repo
-```
+* GITHUB_ORG_ID is an optional environment variable you can set to your own
+  github organization id. If set, any user of the specified GitHub organization
+  can login.  If it is their first time, an account will automatically be
+  created for them.
 
 ### Configuring LDAP authentication:
 
-  * In `config/config.yml`, set `user_has_username` to `true`
+  * Set `USER_HAS_USERNAME` to `true`
   * Follow the instructions at https://github.com/cschiewek/devise_ldap_authenticatable
-  to set up the devise_ldap_authenticatable gem.
+    to set up the devise_ldap_authenticatable gem.
   * Ensure to set ```config.ldap_create_user = true``` in ```config/initializers/devise.rb```, this enables creating the users from LDAP, otherwhise login will not work.
   * Create a new initializer (e.g. ```config/initializers/devise_ldap.rb```) and add the following code to enable ldap authentication in the User-model:
 ```ruby
@@ -360,17 +232,16 @@ rake db:migrate
 rake assets:precompile
 ```
 
-If we change the way that data is stored, this will run any migrations to bring your database up to date.
+This will ensure that your application stays up to date with any schema changes.
 
 
-### Upgrade from errbit 0.2 to 0.3
+### Upgrading errbit from version 0.2 to 0.3
 
-The file of MongoDB connection config/mongoid.yml change between 0.2 to
-0.3. So Check the new config/mongoid.yml.example file and update it in
-good way.
+The MongoDB connection file `config/mongoid.yml` has changed between version 0.2 and
+0.3. We have provided a new example configuration file to use at `config/mongoid.example.yml`.
 
-This change is not need to be done if you use only ENV variable to
-define you access to MongoDB database.
+This change is not needed if you use ENV variables to
+define access to your MongoDB database.
 
 
 ## User information in error reports
@@ -379,11 +250,12 @@ Errbit can now display information about the user who experienced an error.
 This gives you the ability to ask the user for more information,
 and let them know when you've fixed the bug.
 
-If you would like to include information about the current user in your error reports,
-you can replace the `airbrake` gem in your Gemfile with `airbrake_user_attributes`,
-which wraps the `airbrake` gem and injects user information.
-It will inject information about the current user into the error report
-if your Rails app's controller responds to a `#current_user` method.
+If you are running a Rails application and would like to include information
+about the current user in your error reports, you can replace the `airbrake`
+gem in your Gemfile with `airbrake_user_attributes`.
+This gem is a wrapper around the `airbrake` gem and will automatically
+inject information about the user into any error reports,
+so long as your controllers respond to a `#current_user` method.
 The user's attributes are filtered to remove authentication fields.
 
 If user information is received with an error report,
@@ -394,20 +266,72 @@ it will be displayed under the *User Details* tab:
 
 (This tab will be hidden if no user information is available.)
 
-Adding javascript errors notifications
+Javascript error notifications
 --------------------------------------
 
-Errbit easily supports javascript errors notifications. You just need to add `config.js_notifier = true` to the errbit initializer in the rails app.
+You can log javascript errors that occur in your application by including
+[airbrake-js](https://github.com/airbrake/airbrake-js) javascript library.
+
+First you need to add airbrake-shim.js to your site and set some basic configuration
+options:
 
 ```
-Errbit.configure do |config|
-  config.host    = 'YOUR-ERRBIT-HOST'
-  config.api_key = 'YOUR-PROJECT-API-KEY'
-  config.js_notifier = true
+<script src="airbrake-shim.js" data-airbrake-project-id="ERRBIT API KEY" data-airbrake-project-key="ERRBIT API KEY" data-airbrake-environment-name="production" data-airbrake-host="http://errbit.yourdomain.com"></script>
+```
+
+Or you can just add shim file and set these options using:
+
+```
+Airbrake.setProject("ERRBIT API KEY", "ERRBIT API KEY");
+Airbrake.setHost("http://errbit.yourdomain.com");
+```
+
+And that's it.
+
+Testing API V3 using ruby airbrake client
+-----------------------------------------
+
+If you want you test standard airbrake ruby gem with API V3. To do that you
+need to change your airbrake initializer file to something like this:
+
+```
+Airbrake.configure do |config|
+  config.api_key = ENV['airbrake_api_key']
+  config.host    = ENV['airbrake_host']
+  config.port    = ENV['airbrake_port'].to_i
+  config.secure  = ENV['airbrake_secure'] == 'true'
+  config.project_id = ENV['airbrake_api_key']
+end
+
+class Airbrake::Sender
+  def json_api_enabled?
+    true
+  end
 end
 ```
 
-Then get the `notifier.js` from `errbit/public/javascript/notifier.js` and add to `application.js` on your rails app or include `http://YOUR-ERRBIT-HOST/javascripts/notifier.js` on your `application.html.erb.`
+It is important to set project_id option to the same value as api_key, because
+project_id is required for building url to api endpoint. And airbrake has a bug
+that removes api_key from endpoint url. The only way to get this value is by passing
+it as project_id. This little monkey-patch is required because airbrake gem only
+uses v3 api when host is set to collect.airbrake.io.
+
+V3 request don't have framework option so you won't see this value in your error
+notices in errbit. Besides that everything looks the same. It was tested using
+rake airbrake:test for both v2 and v3.
+
+Using custom fingerprinting methods
+-----------------------------------
+
+Errbit allows you to use your own Fingerprinting Strategy.
+If you are upgrading from a very old version of errbit, you can use the `Fingerprint::MD5` for compatibility. The fingerprint strategy can be changed by adding an initializer to errbit:
+
+```ruby
+# config/fingerprint.rb
+ErrorReport.fingerprint_strategy = Fingerprint::MD5
+```
+
+The easiest way to add custom fingerprint methods is to simply subclass `Fingerprint`
 
 Issue Trackers
 --------------
@@ -520,26 +444,17 @@ Solutions known to work are listed below:
 <table>
   <tr>
     <th>PHP (&gt;= 5.3)</th>
-    <td>https://github.com/flippa/errbit-php</td>
+    <td>[flippa/errbit-php](https://github.com/flippa/errbit-php)</td>
   </tr>
   <tr>
     <th>OOP PHP (&gt;= 5.3)</th>
-    <td>https://github.com/emgiezet/errbitPHP</td>
+    <td>[emgiezet/errbitPHP](https://github.com/emgiezet/errbitPHP)</td>
   </tr>
   <tr>
     <th>Python</th>
-    <td>https://github.com/mkorenkov/errbit.py , https://github.com/pulseenergy/airbrakepy</td>
+    <td>[mkorenkov/errbit.py](https://github.com/mkorenkov/errbit.py) , [pulseenergy/airbrakepy](https://github.com/pulseenergy/airbrakepy)</td>
   </tr>
 </table>
-
-Develop on Errbit
------------------
-
-A guide can help on this way on  [**Errbit Advanced Developer Guide**](docs/DEVELOPER-ADVANCED.md)
-
-## Other documentation
-
-* [All ENV variables availables to configure Errbit](docs/ENV-VARIABLES.md)
 
 TODO
 ----
@@ -569,13 +484,13 @@ Special Thanks
 See the [contributors graph](https://github.com/errbit/errbit/graphs/contributors) for further details. You can see another list of Contributors by release version on [CONTRIBUTORS.md]
 
 
-Contributing
+Contributing to Errbit
 ------------
 
 We welcome any contributions. If you need to tweak Errbit for your organization's needs,
 there are probably other users who will appreciate your work.
 Please try to determine whether or not your feature should be **global** or **optional**,
-and make **optional** features configurable via `config/config.yml`.
+and make **optional** features configurable via environment variables.
 
 **Examples of optional features:**
 
@@ -591,13 +506,13 @@ and make **optional** features configurable via `config/config.yml`.
 * Send us a pull request. Bonus points for topic branches.
 * Add you on the CONTRIBUTORS.md file on the current release
 
+# Running tests
+
+More information can be found in the  [**Errbit Advanced Developer Guide**](docs/DEVELOPER-ADVANCED.md)
+
 
 Copyright
 ---------
 
-Copyright (c) 2010-2013 Errbit Team. See LICENSE for details.
-
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/errbit/errbit/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+Copyright (c) 2010-2014 Errbit Team. See LICENSE for details.
 

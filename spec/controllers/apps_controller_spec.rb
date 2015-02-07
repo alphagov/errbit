@@ -1,7 +1,4 @@
-require 'spec_helper'
-
-describe AppsController do
-
+describe AppsController, type: 'controller' do
   it_requires_authentication
   it_requires_admin_privileges :for => {:new => :get, :edit => :get, :create => :post, :update => :put, :destroy => :delete}
 
@@ -103,6 +100,16 @@ describe AppsController do
       it "should list atom feed successfully" do
         get :show, :id => app.id, :format => "atom"
         expect(response).to be_success
+      end
+
+      it "should list available watchers by name" do
+        Fabricate(:user, :name => "Carol")
+        Fabricate(:user, :name => "Alice")
+        Fabricate(:user, :name => "Betty")
+
+        get :show, :id => app.id
+
+        expect(controller.users.to_a).to eq(User.all.to_a.sort_by(&:name))
       end
 
       context "pagination" do
@@ -239,7 +246,7 @@ describe AppsController do
     describe "POST /apps" do
       before do
         @app = Fabricate(:app)
-        App.stub(:new).and_return(@app)
+        allow(App).to receive(:new).and_return(@app)
       end
 
       context "when the create is successful" do
@@ -320,47 +327,13 @@ describe AppsController do
         context "unknown tracker type" do
           before(:each) do
             put :update, :id => @app.id, :app => { :issue_tracker_attributes => {
-              :type => 'unknown', :project_id => '1234', :api_token => '123123', :account => 'myapp'
+              :type_tracker => 'unknown', :options => {:project_id => '1234', :api_token => '123123', :account => 'myapp'}
             } }
             @app.reload
           end
 
           it "should not create issue tracker" do
             expect(@app.issue_tracker_configured?).to eq false
-          end
-        end
-
-        IssueTracker.subclasses.each do |tracker_klass|
-          context tracker_klass do
-            it "should save tracker params" do
-              params = tracker_klass::Fields.inject({}){|hash,f| hash[f[0]] = "test_value"; hash }
-              params[:ticket_properties] = "card_type = defect" if tracker_klass == MingleTracker
-              params[:type] = tracker_klass.to_s
-              put :update, :id => @app.id, :app => {:issue_tracker_attributes => params}
-
-              @app.reload
-
-              tracker = @app.issue_tracker
-              expect(tracker).to be_a(tracker_klass)
-              tracker_klass::Fields.each do |field, field_info|
-                case field
-                when :ticket_properties
-                  expect(tracker.send(field.to_sym)).to eq 'card_type = defect'
-                else
-                  expect(tracker.send(field.to_sym)).to eq 'test_value'
-                end
-              end
-            end
-
-            it "should show validation notice when sufficient params are not present" do
-              # Leave out one required param
-              params = tracker_klass::Fields[1..-1].inject({}){|hash,f| hash[f[0]] = "test_value"; hash }
-              params[:type] = tracker_klass.to_s
-              put :update, :id => @app.id, :app => {:issue_tracker_attributes => params}
-
-              @app.reload
-              expect(@app.issue_tracker_configured?).to eq false
-            end
           end
         end
       end
@@ -377,8 +350,10 @@ describe AppsController do
       end
 
       it "should destroy the app" do
-        expect(@app).to receive(:destroy)
         delete :destroy, :id => @app.id
+        expect {
+          @app.reload
+        }.to raise_error(Mongoid::Errors::DocumentNotFound)
       end
 
       it "should display a message" do
@@ -480,11 +455,8 @@ describe AppsController do
         expect do
           post :regenerate_api_key, :id => app.id
           expect(request).to redirect_to edit_app_path(app)
-        end.to change { app.api_key }
+        end.to change { app.reload.api_key }
       end
     end
-
   end
-
 end
-
