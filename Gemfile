@@ -102,6 +102,9 @@ group :test do
   gem 'timecop'
   gem 'test-unit', require: 'test/unit'
   gem 'coveralls', require: false
+  #### GDS additions ####
+  gem 'webmock'
+  #### End GDS additions ####
 end
 
 group :heroku, :production do
