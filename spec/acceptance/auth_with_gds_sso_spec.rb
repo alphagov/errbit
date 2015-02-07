@@ -13,7 +13,7 @@ feature 'Authentication with GDS SSO' do
       expect(u).to be
       expect(u.name).to eq("Test User")
       expect(u.email).to eq("test@example.com")
-      expect(u.admin).to be_false
+      expect(u.admin).to be false
     end
 
     scenario 'logging in as a signon with admin permission sets local admin flag' do
@@ -24,7 +24,7 @@ feature 'Authentication with GDS SSO' do
 
       u = User.where(:uid => '1234').first
       expect(u).to be
-      expect(u.admin).to be_true
+      expect(u.admin).to be true
     end
 
     scenario 'attempting to log in as a user without signin permission' do
@@ -52,7 +52,7 @@ feature 'Authentication with GDS SSO' do
       @user.reload
       expect(@user.name).to eq("Test User")
       expect(@user.email).to eq("test@example.com")
-      expect(@user.admin).to be_false
+      expect(@user.admin).to be false
     end
 
     scenario 'logging in as a signon with admin permission sets local admin flag' do
@@ -62,7 +62,7 @@ feature 'Authentication with GDS SSO' do
       expect(page).to have_content(I18n.t("devise.omniauth_callbacks.success", :kind => 'GDS Signon'))
 
       @user.reload
-      expect(@user.admin).to be_true
+      expect(@user.admin).to be true
     end
 
     scenario 'attempting to log in as a user without signin permission' do
