@@ -55,10 +55,9 @@ class ProblemsController < ApplicationController
   end
 
   def create_issue
-    body = render_to_string "issue_trackers/issue", layout: false, formats: [:txt]
-    title = "[#{ problem.environment }][#{ problem.where }] #{problem.message.to_s.truncate(100)}"
+    issue = Issue.new(problem: problem, user: current_user)
+    issue.body = render_to_string(*issue.render_body_args)
 
-    issue = Issue.new(problem: problem, user: current_user, title: title, body: body)
     unless issue.save
       flash[:error] = issue.errors.full_messages.join(', ')
     end
@@ -73,7 +72,7 @@ class ProblemsController < ApplicationController
 
   def resolve
     problem.resolve!
-    flash[:success] = 'Great news everyone! The err has been resolved.'
+    flash[:success] = 'Great news everyone! The error has been resolved.'
     redirect_to :back
   rescue ActionController::RedirectBackError
     redirect_to app_path(app)

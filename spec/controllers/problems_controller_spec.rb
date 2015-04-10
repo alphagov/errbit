@@ -289,7 +289,6 @@ describe ProblemsController, type: 'controller' do
         expect(problem.issue_type).to eq("mock")
       end
 
-
       context "when rendering views" do
         render_views
 
@@ -298,6 +297,14 @@ describe ProblemsController, type: 'controller' do
           line = issue_tracker.tracker.output.shift
           expect(line[1]).to include(app_problem_url problem.app, problem)
         end
+
+        it "should render whatever the issue tracker says" do
+          allow_any_instance_of(Issue).to receive(:render_body_args).and_return(
+            [{ :inline => 'one <%= problem.id %> two' }])
+          post :create_issue, app_id: problem.app.id, id: problem.id, format: 'html'
+          line = issue_tracker.tracker.output.shift
+          expect(line[1]).to eq("one #{problem.id} two")
+        end
       end
     end
 
@@ -305,7 +312,7 @@ describe ProblemsController, type: 'controller' do
       it "should redirect to problem page" do
         post :create_issue, app_id: problem.app.id, id: problem.id
         expect(response).to redirect_to( app_problem_path(problem.app, problem) )
-        expect(flash[:error]).to eql "This app has no issue tracker setup."
+        expect(flash[:error]).to eql "This app has no issue tracker"
       end
     end
   end
@@ -397,12 +404,12 @@ describe ProblemsController, type: 'controller' do
 
       it "should display a message about 1 err" do
         post :resolve_several, :problems => [@problem2.id.to_s]
-        expect(flash[:success]).to match(/1 err has been resolved/)
+        expect(flash[:success]).to match(/1 error has been resolved/)
       end
 
       it "should display a message about 2 errs" do
         post :resolve_several, :problems => [@problem1.id.to_s, @problem2.id.to_s]
-        expect(flash[:success]).to match(/2 errs have been resolved/)
+        expect(flash[:success]).to match(/2 errors have been resolved/)
         expect(controller.selected_problems).to eq [@problem1, @problem2]
       end
     end
