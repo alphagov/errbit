@@ -24,6 +24,10 @@ def mock_gds_sso_auth(uid, details = {})
   OmniAuth.config.mock_auth[:gds] = gds_omniauth_hash_stub(uid, details)
 end
 
+def clear_gds_sso_auth_mock!
+  OmniAuth.config.mock_auth[:gds] = nil
+end
+
 def log_in(user)
   user.update_attributes!(:uid => Devise.friendly_token) if user.uid.blank?
   mock_gds_sso_auth(user.uid,
