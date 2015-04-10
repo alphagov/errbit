@@ -41,9 +41,6 @@ end
 feature "Create an application" do
 
   let(:admin) { Fabricate(:admin) }
-  let(:user) {
-    Fabricate(:user_watcher, :app => app).user
-  }
 
   before do
     admin
