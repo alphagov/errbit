@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe ProblemMerge do
   let(:problem) { Fabricate(:problem_with_errs) }
   let(:problem_1) { Fabricate(:problem_with_errs) }
@@ -39,6 +37,13 @@ describe ProblemMerge do
     it 'move all err in one problem' do
       problem_merge.merge
       expect(problem.reload.errs.map(&:id).sort).to eq (first_errs | merged_errs).map(&:id).sort
+    end
+
+    it 'keeps the issue link' do
+      problem.update_attributes(issue_link: 'http://foo.com', issue_type: 'mock')
+      problem_merge.merge
+      expect(problem.reload.issue_link).to eq 'http://foo.com'
+      expect(problem.reload.issue_type).to eq 'mock'
     end
 
     it 'update problem cache' do

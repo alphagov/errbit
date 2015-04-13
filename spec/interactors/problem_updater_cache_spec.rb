@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe ProblemUpdaterCache do
   let(:problem) { Fabricate(:problem_with_errs) }
   let(:first_errs) { problem.errs }
@@ -74,7 +72,7 @@ describe ProblemUpdaterCache do
         end
 
         it 'update last_notice_at' do
-          expect(problem.last_notice_at.to_i).to be_within(1).of(notice.created_at.to_i)
+          expect(problem.last_notice_at.to_i).to be_within(2).of(notice.created_at.to_i)
         end
 
         it 'update stats messages' do

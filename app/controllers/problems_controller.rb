@@ -6,10 +6,9 @@
 # COLLECTION => :index, :all, :destroy_several, :resolve_several, :unresolve_several, :merge_several, :unmerge_several, :search
 class ProblemsController < ApplicationController
 
-
   include ProblemsSearcher
 
-  before_filter :need_selected_problem, :only => [
+  before_action :need_selected_problem, :only => [
     :resolve_several, :unresolve_several, :unmerge_several
   ]
 
@@ -56,11 +55,11 @@ class ProblemsController < ApplicationController
   end
 
   def create_issue
-    IssueTracker.update_url_options(request)
-    issue_creation = IssueCreation.new(problem, current_user, params[:tracker])
+    issue = Issue.new(problem: problem, user: current_user)
+    issue.body = render_to_string(*issue.render_body_args)
 
-    unless issue_creation.execute
-      flash[:error] = issue_creation.errors.full_messages.join(', ')
+    unless issue.save
+      flash[:error] = issue.errors.full_messages.join(', ')
     end
 
     redirect_to app_problem_path(app, problem)
@@ -73,7 +72,7 @@ class ProblemsController < ApplicationController
 
   def resolve
     problem.resolve!
-    flash[:success] = 'Great news everyone! The err has been resolved.'
+    flash[:success] = 'Great news everyone! The error has been resolved.'
     redirect_to :back
   rescue ActionController::RedirectBackError
     redirect_to app_path(app)
@@ -148,4 +147,3 @@ class ProblemsController < ApplicationController
     end
   end
 end
-

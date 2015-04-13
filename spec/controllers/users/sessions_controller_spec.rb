@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Users::SessionsController do
+describe Users::SessionsController, type: 'controller' do
 
   before :each do
     request.env["devise.mapping"] = Devise.mappings[:user]

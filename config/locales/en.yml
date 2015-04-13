@@ -12,8 +12,8 @@ en:
         success: "'%{app_name}' was successfully destroyed."
 
   n_errs_have:
-    one:   "%{count} err has"
-    other: "%{count} errs have"
+    one:   "%{count} error has"
+    other: "%{count} errors have"
 
   layouts:
     application:
@@ -81,9 +81,11 @@ en:
       merge: "Merge select issues? They can be unmerged later."
       unmerge: "Unmerge selected issues? They can be re-merged later."
       unresolve: "Unresolve selected issues? They can be resolved again later."
+    search:
+      search_placeholder: 'Search for issues'
 
   comments:
-    confirm_delete: "Premanently delete this comment?"
+    confirm_delete: "Permanently delete this comment?"
   users:
     confirm_delete: "Permanently delete this user?"
   apps:
@@ -104,7 +106,7 @@ en:
       regenerate_api_key: "Regenerate API key"
     show:
       all_deploys: "All Deploys (%{count})"
-      all_errs: all errs
+      all_errs: all errors
       all_users_notified: "All users will be notified when something happens."
       api_key: "API Key:"
       are_you_sure: 'Are you sure?'
@@ -118,17 +120,28 @@ en:
       latest_deploys: Latest Deploys
       message: Message
       no_deploys:  No deploys
-      no_error_yet: "No errs have been caught yet, make sure you setup your app"
+      no_error_yet: "No errors have been caught yet, make sure you setup your app"
       no_watcher: "Sadly, no one is watching this app"
       repository: Repository
       revision: Revision
-      search_placeholder: 'Search for issues'
       show_hide: "(show/hide)"
-      unresolved_errs: unresolved errs
+      unresolved_errs: unresolved errors
       unwatch: unwatch
       user_or_email: User or Email
       watch: watch
       watchers: Watchers
       when:  When
       who: Who
+    issue_tracker_fields:
+      legend: Issue Tracker
+    new:
+      add_app: "Add App"
+      cancel: "cancel"
+      title: "Add App"
+    edit:
+      title: 'Edit App'
+      destroy: 'destroy application'
+      cancel: 'cancel'
+      seriously: 'Seriously?'
+      update: 'Update App'
 

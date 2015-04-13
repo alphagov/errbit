@@ -1,22 +1,18 @@
-require 'spec_helper'
-
-describe ProblemsController do
-
+describe ProblemsController, type: 'controller' do
   it_requires_authentication :for => {
     :index => :get, :show => :get, :resolve => :put, :search => :get
   },
   :params => {:app_id => 'dummyid', :id => 'dummyid'}
 
   let(:app) { Fabricate(:app) }
-  let(:err) { Fabricate(:err, :problem => Fabricate(:problem, :app => app, :environment => "production")) }
-
+  let(:err) { Fabricate(:err, :problem => problem) }
+  let(:admin) { Fabricate(:admin) }
+  let(:problem) { Fabricate(:problem, :app => app, :environment => "production") }
 
   describe "GET /problems" do
-    #render_views
     context 'when logged in as an admin' do
       before(:each) do
-        @user = Fabricate(:admin)
-        sign_in @user
+        sign_in admin
         @problem = Fabricate(:notice, :err => Fabricate(:err, :problem => Fabricate(:problem, :app => app, :environment => "production"))).problem
       end
 
@@ -31,7 +27,7 @@ describe ProblemsController do
         end
 
         it "should be able to override default per_page value" do
-          @user.update_attribute :per_page, 10
+          admin.update_attribute :per_page, 10
           get :index
           expect(controller.problems.to_a.size).to eq 10
         end
@@ -98,7 +94,7 @@ describe ProblemsController do
   describe "GET /problems - previously all" do
     context 'when logged in as an admin' do
       it "gets a paginated list of all problems" do
-        sign_in Fabricate(:admin)
+        sign_in admin
         problems = Kaminari.paginate_array((1..30).to_a)
         3.times { problems << Fabricate(:err).problem }
         3.times { problems << Fabricate(:err, :problem => Fabricate(:problem, :resolved => true)).problem }
@@ -123,12 +119,37 @@ describe ProblemsController do
     end
   end
 
+  describe "GET /problems/search" do
+    before do
+      sign_in Fabricate(:admin)
+      @app      = Fabricate(:app)
+      @problem1 = Fabricate(:problem, :app=>@app, message: "Most important")
+      @problem2 = Fabricate(:problem, :app=>@app, message: "Very very important")
+    end
+
+    it "renders successfully" do
+      get :search
+      expect(response).to be_success
+    end
+
+    it "renders index template" do
+      get :search
+      expect(response).to render_template('problems/index')
+    end
+
+    it "searches problems for given string" do
+      get :search, :search => "Most important"
+      expect(controller.problems).to include(@problem1)
+      expect(controller.problems).to_not include(@problem2)
+    end
+  end
+
   describe "GET /apps/:app_id/problems/:id" do
     #render_views
 
     context 'when logged in as an admin' do
       before do
-        sign_in Fabricate(:admin)
+        sign_in admin
       end
 
       it "finds the app" do
@@ -191,115 +212,114 @@ describe ProblemsController do
 
   describe "PUT /apps/:app_id/problems/:id/resolve" do
     before do
-      sign_in Fabricate(:admin)
+      sign_in admin
 
-      @problem = Fabricate(:err)
-      App.stub(:find).with(@problem.app.id.to_s).and_return(@problem.app)
-      @problem.app.problems.stub(:find).and_return(@problem.problem)
-      @problem.problem.stub(:resolve!)
+      @err = Fabricate(:err)
     end
 
-    it 'finds the app and the problem' do
-      expect(App).to receive(:find).with(@problem.app.id.to_s).and_return(@problem.app)
-      expect(@problem.app.problems).to receive(:find).and_return(@problem.problem)
-      put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
-      expect(controller.app).to eq @problem.app
-      expect(controller.problem).to eq @problem.problem
+    it 'finds the app and the err' do
+      expect(App).to receive(:find).with(@err.app.id.to_s).and_return(@err.app)
+      expect(@err.app.problems).to receive(:find).and_return(@err.problem)
+      put :resolve, :app_id => @err.app.id, :id => @err.problem.id
+      expect(controller.app).to eq @err.app
+      expect(controller.problem).to eq @err.problem
     end
 
     it "should resolve the issue" do
-      expect(@problem.problem).to receive(:resolve!).and_return(true)
-      put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
+      put :resolve, :app_id => @err.app.id, :id => @err.problem.id
+      expect(@err.problem.reload.resolved).to be(true)
     end
 
     it "should display a message" do
-      put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
+      put :resolve, :app_id => @err.app.id, :id => @err.problem.id
       expect(request.flash[:success]).to match(/Great news/)
     end
 
     it "should redirect to the app page" do
-      put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
-      expect(response).to redirect_to(app_path(@problem.app))
+      put :resolve, :app_id => @err.app.id, :id => @err.problem.id
+      expect(response).to redirect_to(app_path(@err.app))
     end
 
     it "should redirect back to problems page" do
-      request.env["Referer"] = problems_path
-      put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
+      request.env["HTTP_REFERER"] = problems_path
+      put :resolve, :app_id => @err.app.id, :id => @err.problem.id
       expect(response).to redirect_to(problems_path)
     end
   end
 
   describe "POST /apps/:app_id/problems/:id/create_issue" do
-    #render_views
+    before { sign_in admin }
 
-    before(:each) do
-      sign_in Fabricate(:admin)
-    end
-
-    context "successful issue creation" do
-      context "lighthouseapp tracker" do
-        let(:notice) { Fabricate :notice }
-        let(:tracker) { Fabricate :lighthouse_tracker, :app => notice.app }
-        let(:problem) { notice.problem }
-
-        before(:each) do
-          number = 5
-          @issue_link = "http://#{tracker.account}.lighthouseapp.com/projects/#{tracker.project_id}/tickets/#{number}.xml"
-          body = "<ticket><number type=\"integer\">#{number}</number></ticket>"
-          stub_request(:post, "http://#{tracker.account}.lighthouseapp.com/projects/#{tracker.project_id}/tickets.xml").
-                       to_return(:status => 201, :headers => {'Location' => @issue_link}, :body => body )
-
-          post :create_issue, :app_id => problem.app.id, :id => problem.id
-          problem.reload
-        end
-
-        it "should redirect to problem page" do
-          expect(response).to redirect_to( app_problem_path(problem.app, problem) )
+    context "when app has a issue tracker" do
+      let(:notice) { Fabricate :notice }
+      let(:problem) { notice.problem }
+      let(:issue_tracker) do
+        Fabricate(:issue_tracker).tap do |t|
+          t.instance_variable_set(:@tracker, ErrbitPlugin::MockIssueTracker.new(t.options))
         end
       end
-    end
 
-    context "absent issue tracker" do
-      let(:problem) { Fabricate :problem }
-
-      before(:each) do
-        post :create_issue, :app_id => problem.app.id, :id => problem.id
+      before do
+        problem.app.issue_tracker = issue_tracker
+        allow(controller).to receive(:problem).and_return(problem)
+        allow(controller).to receive(:current_user).and_return(admin)
       end
 
       it "should redirect to problem page" do
-        expect(response).to redirect_to( app_problem_path(problem.app, problem) )
+        post :create_issue, app_id: problem.app.id, id: problem.id
+        expect(response).to redirect_to(app_problem_path(problem.app, problem))
+        expect(flash[:error]).to be_blank
       end
 
-      it "should set flash error message telling issue tracker of the app doesn't exist" do
-        expect(flash[:error]).to eq "This app has no issue tracker setup."
+      it "should save the right title" do
+        post :create_issue, app_id: problem.app.id, id: problem.id
+        title = "[#{ problem.environment }][#{ problem.where }] #{problem.message.to_s.truncate(100)}"
+        line = issue_tracker.tracker.output.shift
+        expect(line[0]).to eq(title)
+      end
+
+      it "should renders the issue body" do
+        post :create_issue, app_id: problem.app.id, id: problem.id, format: 'html'
+        expect(response).to render_template("issue_trackers/issue")
+      end
+
+      it "should update the problem" do
+        post :create_issue, app_id: problem.app.id, id: problem.id
+        expect(problem.issue_link).to eq("http://example.com/mock-errbit")
+        expect(problem.issue_type).to eq("mock")
+      end
+
+      context "when rendering views" do
+        render_views
+
+        it "should save the right body" do
+          post :create_issue, app_id: problem.app.id, id: problem.id, format: 'html'
+          line = issue_tracker.tracker.output.shift
+          expect(line[1]).to include(app_problem_url problem.app, problem)
+        end
+
+        it "should render whatever the issue tracker says" do
+          allow_any_instance_of(Issue).to receive(:render_body_args).and_return(
+            [{ :inline => 'one <%= problem.id %> two' }])
+          post :create_issue, app_id: problem.app.id, id: problem.id, format: 'html'
+          line = issue_tracker.tracker.output.shift
+          expect(line[1]).to eq("one #{problem.id} two")
+        end
       end
     end
 
-    context "error during request to a tracker" do
-      context "lighthouseapp tracker" do
-        let(:tracker) { Fabricate :lighthouse_tracker }
-        let(:err) { Fabricate(:err, :problem => Fabricate(:problem, :app => tracker.app)) }
-
-        before(:each) do
-          stub_request(:post, "http://#{tracker.account}.lighthouseapp.com/projects/#{tracker.project_id}/tickets.xml").to_return(:status => 500)
-
-          post :create_issue, :app_id => err.app.id, :id => err.problem.id
-        end
-
-        it "should redirect to problem page" do
-          expect(response).to redirect_to( app_problem_path(err.app, err.problem) )
-        end
-
-        it "should notify of connection error" do
-          expect(flash[:error]).to include("There was an error during issue creation:")
-        end
+    context "when app has no issue tracker" do
+      it "should redirect to problem page" do
+        post :create_issue, app_id: problem.app.id, id: problem.id
+        expect(response).to redirect_to( app_problem_path(problem.app, problem) )
+        expect(flash[:error]).to eql "This app has no issue tracker"
       end
     end
   end
 
   describe "DELETE /apps/:app_id/problems/:id/unlink_issue" do
     before(:each) do
-      sign_in Fabricate(:admin)
+      sign_in admin
     end
 
     context "problem with issue" do
@@ -335,7 +355,7 @@ describe ProblemsController do
 
   describe "Bulk Actions" do
     before(:each) do
-      sign_in Fabricate(:admin)
+      sign_in admin
       @problem1 = Fabricate(:err, :problem => Fabricate(:problem, :resolved => true)).problem
       @problem2 = Fabricate(:err, :problem => Fabricate(:problem, :resolved => false)).problem
     end
@@ -384,12 +404,12 @@ describe ProblemsController do
 
       it "should display a message about 1 err" do
         post :resolve_several, :problems => [@problem2.id.to_s]
-        expect(flash[:success]).to match(/1 err has been resolved/)
+        expect(flash[:success]).to match(/1 error has been resolved/)
       end
 
       it "should display a message about 2 errs" do
         post :resolve_several, :problems => [@problem1.id.to_s, @problem2.id.to_s]
-        expect(flash[:success]).to match(/2 errs have been resolved/)
+        expect(flash[:success]).to match(/2 errors have been resolved/)
         expect(controller.selected_problems).to eq [@problem1, @problem2]
       end
     end
@@ -436,13 +456,10 @@ describe ProblemsController do
       end
 
       it "should redirect back to the app page" do
-        request.env["Referer"] = edit_app_path(@app)
+        request.env["HTTP_REFERER"] = edit_app_path(@app)
         put :destroy_all, :app_id => @app.id
         expect(response).to redirect_to(edit_app_path(@app))
       end
     end
-
   end
-
 end
-

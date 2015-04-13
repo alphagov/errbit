@@ -1,5 +1,7 @@
-require 'spec_helper'
 require 'capybara/rspec'
+require 'capybara/poltergeist'
+
+Capybara.javascript_driver = :poltergeist
 
 OmniAuth.config.test_mode = true
 
@@ -20,6 +22,10 @@ end
 
 def mock_gds_sso_auth(uid, details = {})
   OmniAuth.config.mock_auth[:gds] = gds_omniauth_hash_stub(uid, details)
+end
+
+def clear_gds_sso_auth_mock!
+  OmniAuth.config.mock_auth[:gds] = nil
 end
 
 def log_in(user)

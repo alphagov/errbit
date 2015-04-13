@@ -1,7 +1,4 @@
-require 'spec_helper'
-
 describe User do
-
   context 'validations' do
     it 'require that a name is present' do
       user = Fabricate.build(:user, :name => nil)
@@ -41,7 +38,6 @@ describe User do
   end
 
   context 'Watchers' do
-
     it 'has many watchers' do
       user = Fabricate(:user)
       watcher = Fabricate(:user_watcher, :user => user)
@@ -53,17 +49,16 @@ describe User do
       user = Fabricate(:user)
       watched_app  = Fabricate(:app)
       unwatched_app = Fabricate(:app)
-      watcher = Fabricate(:user_watcher, :app => watched_app, :user => user)
+      Fabricate(:user_watcher, :app => watched_app, :user => user)
       expect(user.apps.all).to include(watched_app)
       expect(user.apps.all).to_not include(unwatched_app)
     end
-
   end
 
   context "First user" do
     it "should be created this admin access via db:seed" do
       expect {
-        $stdout.stub(:puts => true)
+        allow($stdout).to receive(:puts).and_return(true)
         require Rails.root.join('db/seeds.rb')
       }.to change {
         User.where(:admin => true).count
@@ -78,13 +73,13 @@ describe User do
       end
 
       it "should return falseish if given a hash missing the necessary details" do
-        expect(User.find_for_gds_oauth({:foo => :bar})).to be_false
-        expect(User.find_for_gds_oauth({'info' => {}, 'extra' => {'user' => {}}})).to be_false
+        expect(User.find_for_gds_oauth({:foo => :bar})).to be false
+        expect(User.find_for_gds_oauth({'info' => {}, 'extra' => {'user' => {}}})).to be false
       end
 
       it "should return falseish if the signon user doesn't have signin permission" do
         @oauth_hash['extra']['user']['permissions'] = %w(something)
-        expect(User.find_for_gds_oauth(@oauth_hash)).to be_false
+        expect(User.find_for_gds_oauth(@oauth_hash)).to be false
       end
 
       context "without an existing user" do
@@ -117,7 +112,7 @@ describe User do
         it "should return a falseish value if the user can't be created" do
           @oauth_hash['info']['email'] = "not an email address"
 
-          expect(User.find_for_gds_oauth(@oauth_hash)).to be_false
+          expect(User.find_for_gds_oauth(@oauth_hash)).to be false
         end
       end
 
@@ -150,11 +145,10 @@ describe User do
         it "should return falseish if the user can't be updated" do
           @oauth_hash['info']['email'] = "not an email address"
 
-          expect(User.find_for_gds_oauth(@oauth_hash)).to be_false
+          expect(User.find_for_gds_oauth(@oauth_hash)).to be false
         end
       end
 
     end
   end
 end
-

@@ -1,11 +1,9 @@
-require 'spec_helper'
-
-describe App do
+describe App, type: 'model' do
   context "Attributes" do
     it { should have_field(:_id).of_type(String) }
     it { should have_field(:name).of_type(String) }
     it { should have_fields(:api_key, :github_repo, :bitbucket_repo, :asset_host, :repository_branch) }
-    it { should have_fields(:resolve_errs_on_deploy, :notify_all_users, :notify_on_errs, :notify_on_deploys).of_type(Boolean) }
+    it { should have_fields(:resolve_errs_on_deploy, :notify_all_users, :notify_on_errs, :notify_on_deploys).of_type(Mongoid::Boolean) }
     it { should have_field(:email_at_notices).of_type(Array).with_default_value_of(Errbit::Config.email_at_notices) }
   end
 
@@ -111,12 +109,12 @@ describe App do
   context '#github_repo?' do
     it 'is true when there is a github_repo' do
       app = Fabricate(:app, :github_repo => "errbit/errbit")
-      expect(app.github_repo?).to be_true
+      expect(app.github_repo?).to be(true)
     end
 
     it 'is false when no github_repo' do
       app = Fabricate(:app)
-      expect(app.github_repo?).to be_false
+      expect(app.github_repo?).to be(false)
     end
   end
 
@@ -136,19 +134,19 @@ describe App do
     it "should be true if notify on errs and there are notification recipients" do
       app = Fabricate(:app, :notify_on_errs => true, :notify_all_users => false)
       2.times { Fabricate(:watcher, :app => app) }
-      expect(app.emailable?).to be_true
+      expect(app.emailable?).to be(true)
     end
 
     it "should be false if notify on errs is disabled" do
       app = Fabricate(:app, :notify_on_errs => false, :notify_all_users => false)
       2.times { Fabricate(:watcher, :app => app) }
-      expect(app.emailable?).to be_false
+      expect(app.emailable?).to be(false)
     end
 
     it "should be false if there are no notification recipients" do
       app = Fabricate(:app, :notify_on_errs => true, :notify_all_users => false)
       expect(app.watchers).to be_empty
-      expect(app.emailable?).to be_false
+      expect(app.emailable?).to be(false)
     end
   end
 
@@ -219,6 +217,4 @@ describe App do
       }.to raise_error(Mongoid::Errors::DocumentNotFound)
     end
   end
-
 end
-
