@@ -1,6 +1,6 @@
 require 'acceptance/acceptance_helper'
 
-feature 'Sign in with Google' do
+feature 'Sign in with Google', pending: "Removed ability to log in with Google" do
   background do
     allow(Errbit::Config).to receive(:google_authentication).and_return(true)
     Fabricate(:user, google_uid: 'nashby')
