@@ -53,6 +53,13 @@ gem 'omniauth-github'
 # Google OAuth
 gem 'omniauth-google-oauth2'
 
+#### GDS additions ####
+# GDS Signon
+gem 'omniauth-gds', '~> 3.1'
+gem 'plek', '1.7.0'
+gem 'warden-oauth2', '0.0.1'
+#### End GDS additions ####
+
 gem 'ri_cal'
 gem 'yajl-ruby', platform: 'ruby'
 gem 'json', platform: 'jruby'
@@ -92,6 +99,9 @@ group :test do
   gem 'email_spec'
   gem 'timecop'
   gem 'coveralls', require: false
+  #### GDS additions ####
+  gem 'webmock'
+  #### End GDS additions ####
 end
 
 group :heroku, :production do

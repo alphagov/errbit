@@ -65,7 +65,20 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     end
   end
 
-  private def update_user_with_github_attributes(user, login, token)
+  def gds
+    auth = env["omniauth.auth"]
+    if user = User.find_for_gds_oauth(auth)
+      user.clear_remotely_signed_out!
+      flash[:success] = I18n.t "devise.omniauth_callbacks.success", :kind => "GDS Signon"
+      sign_in_and_redirect user, :event => :authentication
+    else
+      render :status => 403, :text => I18n.t("devise.omniauth_callbacks.failure", :kind => "GDS Signon", :reason => "You do not have permission to access the app")
+    end
+  end
+
+  private
+
+  def update_user_with_github_attributes(user, login, token)
     user.update_attributes(
       github_login:       login,
       github_oauth_token: token

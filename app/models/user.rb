@@ -37,6 +37,12 @@ class User
 
   index authentication_token: 1
 
+  ### GDS SSO
+  field :uid, :type => String
+  field :remotely_signed_out, :type => Boolean, :default => false
+  field :permissions, :type => Array, :default => []
+  index :uid => 1
+
   before_save :ensure_authentication_token
 
   validates :name, presence: true
@@ -56,7 +62,7 @@ class User
   end
 
   def password_required?
-    github_login.present? ? false : super
+    (github_login.present? or uid.present?) ? false : super
   end
 
   def github_account?
@@ -86,6 +92,32 @@ class User
     :auth_token
   end
 
+  def active_for_authentication?
+    super && ! remotely_signed_out
+  end
+
+  def set_remotely_signed_out!
+    self.update_attribute(:remotely_signed_out, true) unless self.remotely_signed_out
+  end
+
+  def clear_remotely_signed_out!
+    self.update_attribute(:remotely_signed_out, false) if self.remotely_signed_out
+  end
+
+  def self.find_for_gds_oauth(auth_hash)
+    return false unless auth_hash.has_key?('info') and auth_hash.has_key?('extra') and auth_hash['extra'].has_key?('user')
+
+    permissions = auth_hash['extra']['user']['permissions'] || []
+    return false unless permissions.include?('signin')
+
+    user = self.where(:uid => auth_hash['uid']).first_or_initialize
+    user.permissions = permissions
+    user.admin = permissions.include?("admin")
+    user.name = auth_hash['info']['name']
+    user.email = auth_hash['info']['email']
+    user.save and user
+  end
+
   def reset_password(new_password, new_password_confirmation)
     self.password = new_password
     self.password_confirmation = new_password_confirmation
@@ -95,7 +127,9 @@ class User
     save(validate: false)
   end
 
-  private def generate_authentication_token
+  private
+
+  def generate_authentication_token
     loop do
       token = Devise.friendly_token
       break token unless User.where(authentication_token: token).first
