@@ -56,6 +56,13 @@ Rails.application.configure do
   # Send deprecation notices to registered listeners.
   config.active_support.deprecation = :notify
 
+  # Configure Cache-Control header used for serving static files by ActionDispatch::Static middleware
+  config.static_cache_control = "public, max-age=7200"
+
+  config.logstasher.enabled = true
+  config.logstasher.logger = Logger.new("#{Rails.root}/log/#{Rails.env}.json.log")
+  config.logstasher.suppress_app_log = true
+
   # Disable automatic flushing of the log to improve performance.
   # config.autoflush_log = false
 
