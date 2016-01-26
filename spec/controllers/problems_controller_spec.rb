@@ -1,3 +1,14 @@
+# FIXME: This is a monkey patch to workaround an issue in rspec-rails:
+#
+#   NoMethodError:
+#     undefined method `cache' for nil:NilClass
+#
+# See: https://github.com/rspec/rspec-rails/issues/1532#issuecomment-174679485
+#
+RSpec::Rails::ViewRendering::EmptyTemplatePathSetDecorator.class_eval do  
+  alias_method :find_all_anywhere, :find_all
+end
+
 describe ProblemsController, type: 'controller' do
   it_requires_authentication :for => {
     :index => :get, :show => :get, :resolve => :put, :search => :get
