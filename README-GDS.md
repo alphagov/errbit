@@ -10,11 +10,6 @@ The main changes in the GDS fork are as follows:
   deliberately disabled them because we don't want to allow sensitive data
   to be leaked out of errbit (which these integrations would allow).
 
-* Allow users to see all apps
-
-  In upstream errbit you can only see apps which you're watching. We want
-  users to see all apps in the web interface but only watch some of them.
-
 * Various boilerplate/small integrations (several commits)
 
 ## How to keep up-to-date with upstream
