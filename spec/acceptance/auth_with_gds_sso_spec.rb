@@ -2,6 +2,10 @@ require 'acceptance/acceptance_helper'
 
 feature 'Authentication with GDS SSO' do
 
+  after do
+    clear_gds_sso_auth_mock!
+  end
+
   context "no existing local user" do
     scenario 'logging in as a user with signin permission' do
       mock_gds_sso_auth('1234')
