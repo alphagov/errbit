@@ -1,4 +1,8 @@
 describe "Callback on Notice", type: 'model' do
+  before do
+    stub_request(:any, /.*campfirenow.com/)
+  end
+
   let(:notice_attrs_for) do
     lambda do |api_key|
       {

@@ -44,7 +44,7 @@ describe Users::OmniauthCallbacksController, type: 'controller' do
     env = {
       "omniauth.auth" => @stub_omniauth_hash,
     }
-    @controller.stub(:env).and_return(env)
+    allow(@controller).to receive(:env).and_return(env)
   end
 
   context 'Callback from GDS SSO' do
@@ -55,31 +55,31 @@ describe Users::OmniauthCallbacksController, type: 'controller' do
     context "with a valid user" do
       before :each do
         @mock_user = mock_model(User, :clear_remotely_signed_out! => nil)
-        User.stub(:find_for_gds_oauth).and_return(@mock_user)
+        allow(User).to receive(:find_for_gds_oauth).and_return(@mock_user)
 
-        @controller.stub(:sign_in_and_redirect)
-        @controller.stub(:render) # prevent missing template errors due to stubbing sign_in_and_redirect etc.
+        allow(@controller).to receive(:sign_in_and_redirect)
+        allow(@controller).to receive(:render) # prevent missing template errors due to stubbing sign_in_and_redirect etc.
       end
 
       it "should create/update a user from the details" do
-        User.should_receive(:find_for_gds_oauth).with(@stub_omniauth_hash).and_return(@mock_user)
+        expect(User).to receive(:find_for_gds_oauth).with(@stub_omniauth_hash).and_return(@mock_user)
         get :gds
       end
 
       it "should clear remotely_signed_out flag on the user" do
-        @mock_user.should_receive(:clear_remotely_signed_out!)
+        expect(@mock_user).to receive(:clear_remotely_signed_out!)
         get :gds
       end
 
       it "should sign in and redirect the user" do
-        @controller.should_receive(:sign_in_and_redirect).with(@mock_user, :event => :authentication)
+        expect(@controller).to receive(:sign_in_and_redirect).with(@mock_user, :event => :authentication)
         get :gds
       end
     end
 
     context "with an invalid user" do
       before :each do
-        User.stub(:find_for_gds_oauth).and_return(nil)
+        expect(User).to receive(:find_for_gds_oauth).and_return(nil)
       end
 
       it "should display an error message to the user" do

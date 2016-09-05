@@ -28,6 +28,7 @@ require 'xmpp4r/muc'
 require 'mongoid-rspec'
 require 'fabrication'
 require 'errbit_plugin/mock_issue_tracker'
+require 'webmock/rspec'
 
 # Requires supporting files with custom matchers and macros, etc,
 # in ./support/ and its subdirectories.
