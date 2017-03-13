@@ -151,7 +151,7 @@ GEM
       multi_json
     globalid (0.3.7)
       activesupport (>= 4.1.0)
-    haml (4.0.3)
+    haml (4.0.7)
       tilt
     hashie (2.0.5)
     hipchat (0.12.0)
@@ -395,7 +395,7 @@ GEM
     thor (0.19.1)
     thread_safe (0.3.5)
     thread_safe (0.3.5-java)
-    tilt (2.0.5)
+    tilt (2.0.6)
     timecop (0.6.3)
     tins (0.12.0)
     tzinfo (1.2.2)
@@ -455,7 +455,7 @@ DEPENDENCIES
   errbit_plugin!
   fabrication
   flowdock
-  haml
+  haml (>= 4.0.5)
   hipchat
   hoi
   hoptoad_notifier (~> 2.4)
@@ -503,3 +503,6 @@ DEPENDENCIES
   webmock
   xmpp4r
   yajl-ruby
+
+BUNDLED WITH
+   1.13.6
